@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoveGo Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080914;
+      --panel: rgba(18, 20, 38, 0.9);
+      --panel-strong: #171a32;
+      --text: #f7f8ff;
+      --muted: #a7afd5;
+      --line: rgba(255, 255, 255, 0.12);
+      --primary: #7c5cff;
+      --primary-2: #21b7ff;
+      --danger: #ff5577;
+      --success: #58e6a7;
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(124, 92, 255, 0.35), transparent 30%),
+        radial-gradient(circle at 85% 85%, rgba(33, 183, 255, 0.28), transparent 28%),
+        linear-gradient(145deg, #070812 0%, #11142b 52%, #070b19 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .phone {
+      width: min(100%, 400px);
+      min-height: 690px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 18%),
+        var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      width: 96px;
+      height: 5px;
+      border-radius: 99px;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .app {
+      min-height: 690px;
+      display: flex;
+      flex-direction: column;
+      padding: 56px 24px 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 38px;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 14px 32px rgba(75, 121, 255, 0.32);
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .screen {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      animation: rise 240ms ease;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero {
+      margin-bottom: 30px;
+    }
+
+    .hero h2 {
+      margin: 0 0 10px;
+      max-width: 290px;
+      font-size: clamp(2rem, 9vw, 2.72rem);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 1rem;
+    }
+
+    .route-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 26px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .pin-stack {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+    }
+
+    .pin {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--primary-2);
+      box-shadow: 0 0 0 5px rgba(33, 183, 255, 0.12);
+    }
+
+    .pin.end {
+      background: var(--primary);
+      box-shadow: 0 0 0 5px rgba(124, 92, 255, 0.13);
+    }
+
+    .dash {
+      width: 2px;
+      height: 18px;
+      background: linear-gradient(var(--primary-2), var(--primary));
+      opacity: 0.75;
+    }
+
+    .route-card strong,
+    .route-card span {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .route-card strong {
+      font-size: 0.94rem;
+      margin-bottom: 4px;
+    }
+
+    .route-card span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .fare {
+      color: var(--success);
+      font-weight: 800;
+      font-size: 0.98rem;
+    }
+
+    .form {
+      display: grid;
+      gap: 14px;
+      margin-top: auto;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 650;
+    }
+
+    input {
+      width: 100%;
+      min-height: 54px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      outline: none;
+      padding: 0 16px;
+      background: rgba(9, 11, 24, 0.78);
+      color: var(--text);
+      font: inherit;
+      transition: border 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    input:focus {
+      border-color: rgba(33, 183, 255, 0.75);
+      background: rgba(12, 15, 31, 0.95);
+      box-shadow: 0 0 0 4px rgba(33, 183, 255, 0.13);
+    }
+
+    .otp-input {
+      font-size: 1.5rem;
+      text-align: center;
+      letter-spacing: 0.25em;
+      font-weight: 800;
+    }
+
+    button {
+      min-height: 54px;
+      border: 0;
+      border-radius: 16px;
+      cursor: pointer;
+      color: white;
+      font: inherit;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 16px 36px rgba(57, 115, 255, 0.28);
+      transition: transform 140ms ease, filter 140ms ease, opacity 140ms ease;
+    }
+
+    button:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.62;
+      transform: none;
+    }
+
+    .secondary {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .message {
+      min-height: 24px;
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .message.error {
+      color: var(--danger);
+    }
+
+    .message.success {
+      color: var(--success);
+    }
+
+    .timer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 22px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .timer span {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .timer strong {
+      font-size: 1.3rem;
+      color: var(--success);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sent-to {
+      overflow-wrap: anywhere;
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .welcome {
+      flex: 1;
+      display: grid;
+      align-content: center;
+      gap: 22px;
+      text-align: center;
+    }
+
+    .check {
+      width: 86px;
+      height: 86px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(88, 230, 167, 0.18), rgba(33, 183, 255, 0.2));
+      border: 1px solid rgba(88, 230, 167, 0.35);
+      color: var(--success);
+      font-size: 2.5rem;
+    }
+
+    .welcome h2 {
+      margin: 0;
+      font-size: 2.2rem;
+      letter-spacing: 0;
+    }
+
+    .welcome p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .user-email {
+      color: var(--text);
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 430px) {
+      body {
+        padding: 0;
+      }
+
+      .phone {
+        width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        border: 0;
+      }
+
+      .app {
+        min-height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="Login MoveGo">
+    <section class="app">
+      <header class="brand">
+        <div class="logo" aria-hidden="true">MG</div>
+        <div>
+          <h1>MoveGo</h1>
+          <p>Seu caminho em poucos toques</p>
+        </div>
+      </header>
+
+      <div class="screen active" id="emailScreen">
+        <div class="hero">
+          <h2>Entre para seguir viagem.</h2>
+          <p>Acesse sua conta com um código seguro enviado por email.</p>
+        </div>
+
+        <div class="route-card" aria-hidden="true">
+          <div class="pin-stack">
+            <span class="pin"></span>
+            <span class="dash"></span>
+            <span class="pin end"></span>
+          </div>
+          <div>
+            <strong>Casa → Centro</strong>
+            <span>Motoristas próximos agora</span>
+          </div>
+          <div class="fare">R$ 18</div>
+        </div>
+
+        <form class="form" id="emailForm">
+          <label for="emailInput">
+            Email
+            <input id="emailInput" type="email" autocomplete="email" placeholder="voce@email.com" required />
+          </label>
+          <button id="sendButton" type="submit">Enviar código</button>
+          <p class="message" id="emailMessage" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <div class="screen" id="otpScreen">
+        <div class="hero">
+          <h2>Confira seu email.</h2>
+          <p>Código enviado para <span class="sent-to" id="sentEmail"></span>.</p>
+        </div>
+
+        <div class="timer">
+          <span>Expira em</span>
+          <strong id="countdown">05:00</strong>
+        </div>
+
+        <form class="form" id="otpForm">
+          <label for="otpInput">
+            Código de 6 dígitos
+            <input
+              class="otp-input"
+              id="otpInput"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="6"
+              placeholder="000000"
+              required
+            />
+          </label>
+          <button id="loginButton" type="submit">Entrar</button>
+          <button class="secondary" id="resendButton" type="button">Reenviar código</button>
+          <p class="message" id="otpMessage" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <div class="screen" id="welcomeScreen">
+        <div class="welcome">
+          <div class="check" aria-hidden="true">✓</div>
+          <div>
+            <h2>Bem-vindo!</h2>
+            <p>Você entrou na MoveGo como <span class="user-email" id="welcomeEmail"></span>.</p>
+          </div>
+          <button class="secondary" id="logoutButton" type="button">Sair</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const EMAILJS_SERVICE_ID = "service_fge752b";
+    const EMAILJS_TEMPLATE_ID = "template_cw5mpye";
+    const EMAILJS_PUBLIC_KEY = "lxlQKPv4A11ZTqZRI";
+    const OTP_LIFETIME_MS = 5 * 60 * 1000;
+
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+    const emailScreen = document.getElementById("emailScreen");
+    const otpScreen = document.getElementById("otpScreen");
+    const welcomeScreen = document.getElementById("welcomeScreen");
+    const emailForm = document.getElementById("emailForm");
+    const otpForm = document.getElementById("otpForm");
+    const emailInput = document.getElementById("emailInput");
+    const otpInput = document.getElementById("otpInput");
+    const sendButton = document.getElementById("sendButton");
+    const loginButton = document.getElementById("loginButton");
+    const resendButton = document.getElementById("resendButton");
+    const logoutButton = document.getElementById("logoutButton");
+    const emailMessage = document.getElementById("emailMessage");
+    const otpMessage = document.getElementById("otpMessage");
+    const sentEmail = document.getElementById("sentEmail");
+    const welcomeEmail = document.getElementById("welcomeEmail");
+    const countdown = document.getElementById("countdown");
+
+    let currentEmail = "";
+    let currentOtp = "";
+    let expiresAt = 0;
+    let timerId = null;
+
+    function showScreen(screen) {
+      [emailScreen, otpScreen, welcomeScreen].forEach((item) => item.classList.remove("active"));
+      screen.classList.add("active");
+    }
+
+    function setMessage(element, text, type = "") {
+      element.textContent = text;
+      element.className = type ? `message ${type}` : "message";
+    }
+
+    function generateOtp() {
+      return String(Math.floor(100000 + Math.random() * 900000));
+    }
+
+    function formatTime(date) {
+      return date.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function formatCountdown(milliseconds) {
+      const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+      const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+      const seconds = String(totalSeconds % 60).padStart(2, "0");
+      return `${minutes}:${seconds}`;
+    }
+
+    function startCountdown() {
+      clearInterval(timerId);
+
+      function tick() {
+        const remaining = expiresAt - Date.now();
+        countdown.textContent = formatCountdown(remaining);
+
+        if (remaining <= 0) {
+          clearInterval(timerId);
+          currentOtp = "";
+          loginButton.disabled = true;
+          setMessage(otpMessage, "O código expirou. Reenvie para receber um novo.", "error");
+        }
+      }
+
+      tick();
+      timerId = setInterval(tick, 1000);
+    }
+
+    async function sendOtp(email) {
+      if (!window.emailjs) {
+        throw new Error("EmailJS não carregou.");
+      }
+
+      currentEmail = email;
+      currentOtp = generateOtp();
+      expiresAt = Date.now() + OTP_LIFETIME_MS;
+
+      const expiration = new Date(expiresAt);
+
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        passcode: currentOtp,
+        email: currentEmail,
+        time: formatTime(expiration)
+      });
+    }
+
+    async function handleSendCode(event) {
+      event.preventDefault();
+
+      const email = emailInput.value.trim().toLowerCase();
+      if (!emailInput.checkValidity()) {
+        setMessage(emailMessage, "Digite um email válido para receber o código.", "error");
+        return;
+      }
+
+      sendButton.disabled = true;
+      sendButton.textContent = "Enviando...";
+      setMessage(emailMessage, "");
+
+      try {
+        await sendOtp(email);
+        sentEmail.textContent = currentEmail;
+        otpInput.value = "";
+        loginButton.disabled = false;
+        setMessage(emailMessage, `Código enviado para ${currentEmail}`, "success");
+        setMessage(otpMessage, `Código enviado para ${currentEmail}`, "success");
+        showScreen(otpScreen);
+        startCountdown();
+        otpInput.focus();
+      } catch (error) {
+        console.error("Erro ao enviar OTP:", error);
+        currentOtp = "";
+        setMessage(emailMessage, "Não foi possível enviar o código. Confira o EmailJS e tente novamente.", "error");
+      } finally {
+        sendButton.disabled = false;
+        sendButton.textContent = "Enviar código";
+      }
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+
+      const typedCode = otpInput.value.replace(/\D/g, "");
+      otpInput.value = typedCode;
+
+      if (!currentOtp || Date.now() > expiresAt) {
+        currentOtp = "";
+        loginButton.disabled = true;
+        setMessage(otpMessage, "O código expirou. Reenvie para receber um novo.", "error");
+        return;
+      }
+
+      if (typedCode === currentOtp) {
+        clearInterval(timerId);
+        welcomeEmail.textContent = currentEmail;
+        setMessage(otpMessage, "");
+        showScreen(welcomeScreen);
+        return;
+      }
+
+      setMessage(otpMessage, "Código incorreto. Verifique o email e tente novamente.", "error");
+      otpInput.select();
+    }
+
+    async function handleResend() {
+      resendButton.disabled = true;
+      resendButton.textContent = "Reenviando...";
+      setMessage(otpMessage, "");
+
+      try {
+        await sendOtp(currentEmail);
+        otpInput.value = "";
+        loginButton.disabled = false;
+        setMessage(otpMessage, `Código enviado para ${currentEmail}`, "success");
+        startCountdown();
+        otpInput.focus();
+      } catch (error) {
+        console.error("Erro ao reenviar OTP:", error);
+        setMessage(otpMessage, "Não foi possível reenviar o código. Tente novamente.", "error");
+      } finally {
+        resendButton.disabled = false;
+        resendButton.textContent = "Reenviar código";
+      }
+    }
+
+    function resetApp() {
+      clearInterval(timerId);
+      currentEmail = "";
+      currentOtp = "";
+      expiresAt = 0;
+      emailInput.value = "";
+      otpInput.value = "";
+      loginButton.disabled = false;
+      setMessage(emailMessage, "");
+      setMessage(otpMessage, "");
+      showScreen(emailScreen);
+      emailInput.focus();
+    }
+
+    otpInput.addEventListener("input", () => {
+      otpInput.value = otpInput.value.replace(/\D/g, "").slice(0, 6);
+    });
+
+    emailForm.addEventListener("submit", handleSendCode);
+    otpForm.addEventListener("submit", handleLogin);
+    resendButton.addEventListener("click", handleResend);
+    logoutButton.addEventListener("click", resetApp);
+  </script>
+</body>
+</html>
