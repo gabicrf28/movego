@@ -3,669 +3,294 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MoveGo Login</title>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <title>MoveGo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      color-scheme: dark;
-      --bg: #080914;
-      --panel: rgba(18, 20, 38, 0.9);
-      --panel-strong: #171a32;
-      --text: #f7f8ff;
-      --muted: #a7afd5;
-      --line: rgba(255, 255, 255, 0.12);
-      --primary: #7c5cff;
-      --primary-2: #21b7ff;
-      --danger: #ff5577;
-      --success: #58e6a7;
-      --shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+      --bg: #06070f; --surface: #0e1020; --surface2: #151829;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+      --text: #f0f1ff; --muted: #7c83a8;
+      --accent: #6c47ff; --accent2: #1eb8ff;
+      --success: #22d48a; --danger: #ff4f6a;
+      --radius: 16px; --radius-sm: 10px;
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
     body {
-      min-height: 100vh;
-      margin: 0;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      background:
-        radial-gradient(circle at 20% 10%, rgba(124, 92, 255, 0.35), transparent 30%),
-        radial-gradient(circle at 85% 85%, rgba(33, 183, 255, 0.28), transparent 28%),
-        linear-gradient(145deg, #070812 0%, #11142b 52%, #070b19 100%);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh; background: var(--bg); color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px; position: relative; overflow-x: hidden;
     }
-
-    .phone {
-      width: min(100%, 400px);
-      min-height: 690px;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 34px;
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 18%),
-        var(--panel);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
+    body::before, body::after {
+      content: ''; position: fixed; border-radius: 50%;
+      filter: blur(120px); pointer-events: none; z-index: 0;
     }
-
-    .phone::before {
-      content: "";
-      position: absolute;
-      top: 14px;
-      left: 50%;
-      width: 96px;
-      height: 5px;
-      border-radius: 99px;
-      transform: translateX(-50%);
-      background: rgba(255, 255, 255, 0.18);
+    body::before { width:600px;height:600px;background:rgba(108,71,255,0.15);top:-200px;left:-100px; }
+    body::after  { width:500px;height:500px;background:rgba(30,184,255,0.1);bottom:-150px;right:-100px; }
+    .page {
+      position:relative; z-index:1; width:100%; max-width:1100px;
+      display:grid; grid-template-columns:1fr 1fr; min-height:600px;
+      border-radius:24px; overflow:hidden;
+      border:1px solid var(--border); box-shadow:0 40px 120px rgba(0,0,0,0.6);
     }
-
-    .app {
-      min-height: 690px;
-      display: flex;
-      flex-direction: column;
-      padding: 56px 24px 24px;
+    .left {
+      background:linear-gradient(145deg,#0e1124,#111428);
+      padding:52px 48px; display:flex; flex-direction:column;
+      justify-content:space-between; border-right:1px solid var(--border);
+      position:relative; overflow:hidden;
     }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 38px;
+    .left::before {
+      content:''; position:absolute; width:300px;height:300px; border-radius:50%;
+      background:rgba(108,71,255,0.12); filter:blur(80px); bottom:-80px;left:-80px;
     }
-
-    .logo {
-      width: 48px;
-      height: 48px;
-      display: grid;
-      place-items: center;
-      border-radius: 16px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      box-shadow: 0 14px 32px rgba(75, 121, 255, 0.32);
-      font-weight: 900;
-      letter-spacing: 0;
+    .brand { display:flex; align-items:center; gap:14px; }
+    .logo-box {
+      width:48px;height:48px; border-radius:14px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;font-size:15px;flex-shrink:0;
     }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 1.55rem;
-      line-height: 1;
-      letter-spacing: 0;
+    .brand-name { font-weight:700;font-size:22px; }
+    .brand-tag { font-size:13px;color:var(--muted);margin-top:2px; }
+    .left-content { flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;padding:40px 0; }
+    .left-title { font-weight:700;font-size:clamp(26px,3vw,36px);line-height:1.15;letter-spacing:-0.5px; }
+    .left-title span {
+      background:linear-gradient(90deg,var(--accent2),var(--accent));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
     }
-
-    .brand p {
-      margin: 5px 0 0;
-      color: var(--muted);
-      font-size: 0.88rem;
-    }
-
-    .screen {
-      display: none;
-      flex: 1;
-      flex-direction: column;
-      animation: rise 240ms ease;
-    }
-
-    .screen.active {
-      display: flex;
-    }
-
-    @keyframes rise {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .hero {
-      margin-bottom: 30px;
-    }
-
-    .hero h2 {
-      margin: 0 0 10px;
-      max-width: 290px;
-      font-size: clamp(2rem, 9vw, 2.72rem);
-      line-height: 1.02;
-      letter-spacing: 0;
-    }
-
-    .hero p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.55;
-      font-size: 1rem;
-    }
-
+    .left-desc { font-size:15px;color:var(--muted);line-height:1.65;max-width:340px; }
     .route-card {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 12px;
-      align-items: center;
-      margin: 0 0 26px;
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.05);
+      background:var(--surface2); border:1px solid var(--border2);
+      border-radius:var(--radius); padding:16px 20px;
+      display:flex;align-items:center;gap:16px;
     }
-
-    .pin-stack {
-      display: grid;
-      gap: 8px;
-      justify-items: center;
+    .pins { display:flex;flex-direction:column;align-items:center;gap:4px; }
+    .pin { width:10px;height:10px;border-radius:50%; }
+    .pin.a { background:var(--accent2);box-shadow:0 0 0 3px rgba(30,184,255,0.15); }
+    .pin.b { background:var(--accent);box-shadow:0 0 0 3px rgba(108,71,255,0.15); }
+    .pin-dash { width:1.5px;height:16px;background:linear-gradient(var(--accent2),var(--accent));opacity:0.5; }
+    .route-info strong { display:block;font-size:14px;font-weight:600; }
+    .route-info span { font-size:12px;color:var(--muted); }
+    .fare { margin-left:auto;font-size:16px;font-weight:600;color:var(--success); }
+    .right { background:var(--surface);padding:52px 48px;display:flex;flex-direction:column;justify-content:center; }
+    .screen { display:none;flex-direction:column;gap:20px;animation:fadeUp 280ms ease both; }
+    .screen.active { display:flex; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .screen-title { font-weight:700;font-size:26px;letter-spacing:-0.5px; }
+    .screen-desc { font-size:14px;color:var(--muted);line-height:1.6;margin-top:-8px; }
+    .field { display:flex;flex-direction:column;gap:8px; }
+    .field label { font-size:13px;font-weight:500;color:var(--muted); }
+    input[type="email"],input[type="password"],input[type="text"] {
+      width:100%;height:52px; background:var(--surface2);
+      border:1px solid var(--border2); border-radius:var(--radius-sm);
+      color:var(--text); font-family:'Plus Jakarta Sans',sans-serif;
+      font-size:15px; padding:0 16px; outline:none;
+      transition:border-color 180ms,box-shadow 180ms;
     }
-
-    .pin {
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-      background: var(--primary-2);
-      box-shadow: 0 0 0 5px rgba(33, 183, 255, 0.12);
+    input:focus { border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,71,255,0.15); }
+    .btn {
+      height:52px;border:none;border-radius:var(--radius-sm);
+      font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:600;
+      cursor:pointer;transition:transform 140ms,filter 140ms,opacity 140ms;
+      display:flex;align-items:center;justify-content:center;gap:10px;
     }
-
-    .pin.end {
-      background: var(--primary);
-      box-shadow: 0 0 0 5px rgba(124, 92, 255, 0.13);
+    .btn:hover { filter:brightness(1.1);transform:translateY(-1px); }
+    .btn:active { transform:translateY(0); }
+    .btn:disabled { opacity:0.5;cursor:not-allowed;transform:none; }
+    .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;box-shadow:0 8px 24px rgba(108,71,255,0.3); }
+    .btn-google { background:var(--surface2);border:1px solid var(--border2);color:var(--text); }
+    .btn-ghost { background:transparent;border:1px solid var(--border2);color:var(--muted); }
+    .btn-ghost:hover { color:var(--text);background:var(--surface2);filter:none; }
+    .divider { display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px; }
+    .divider::before,.divider::after { content:'';flex:1;height:1px;background:var(--border2); }
+    .link-row { text-align:center;font-size:13px;color:var(--muted); }
+    .link-row a { color:var(--accent2);text-decoration:none;font-weight:500; }
+    .link-row a:hover { text-decoration:underline; }
+    .msg { min-height:20px;font-size:13px;line-height:1.4; }
+    .msg.error { color:var(--danger); }
+    .msg.success { color:var(--success); }
+    .dash-header { display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--border); }
+    .user-info strong { display:block;font-size:15px;font-weight:600; }
+    .user-info span { font-size:13px;color:var(--muted); }
+    .crud-title { font-size:15px;font-weight:600; }
+    .add-row { display:flex;gap:10px; }
+    .add-row input { flex:1;height:44px;font-size:14px; }
+    .add-row .btn { height:44px;padding:0 18px;font-size:14px;white-space:nowrap; }
+    .rides-list { display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto; }
+    .ride-item {
+      display:flex;align-items:center;gap:10px;
+      padding:12px 14px; background:var(--surface2);
+      border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px;
     }
-
-    .dash {
-      width: 2px;
-      height: 18px;
-      background: linear-gradient(var(--primary-2), var(--primary));
-      opacity: 0.75;
-    }
-
-    .route-card strong,
-    .route-card span {
-      display: block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .route-card strong {
-      font-size: 0.94rem;
-      margin-bottom: 4px;
-    }
-
-    .route-card span {
-      color: var(--muted);
-      font-size: 0.82rem;
-    }
-
-    .fare {
-      color: var(--success);
-      font-weight: 800;
-      font-size: 0.98rem;
-    }
-
-    .form {
-      display: grid;
-      gap: 14px;
-      margin-top: auto;
-    }
-
-    label {
-      display: grid;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 0.86rem;
-      font-weight: 650;
-    }
-
-    input {
-      width: 100%;
-      min-height: 54px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      outline: none;
-      padding: 0 16px;
-      background: rgba(9, 11, 24, 0.78);
-      color: var(--text);
-      font: inherit;
-      transition: border 160ms ease, box-shadow 160ms ease, background 160ms ease;
-    }
-
-    input:focus {
-      border-color: rgba(33, 183, 255, 0.75);
-      background: rgba(12, 15, 31, 0.95);
-      box-shadow: 0 0 0 4px rgba(33, 183, 255, 0.13);
-    }
-
-    .otp-input {
-      font-size: 1.5rem;
-      text-align: center;
-      letter-spacing: 0.25em;
-      font-weight: 800;
-    }
-
-    button {
-      min-height: 54px;
-      border: 0;
-      border-radius: 16px;
-      cursor: pointer;
-      color: white;
-      font: inherit;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      box-shadow: 0 16px 36px rgba(57, 115, 255, 0.28);
-      transition: transform 140ms ease, filter 140ms ease, opacity 140ms ease;
-    }
-
-    button:hover {
-      filter: brightness(1.08);
-      transform: translateY(-1px);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.62;
-      transform: none;
-    }
-
-    .secondary {
-      background: transparent;
-      border: 1px solid var(--line);
-      color: var(--text);
-      box-shadow: none;
-    }
-
-    .message {
-      min-height: 24px;
-      margin: 2px 0 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.4;
-    }
-
-    .message.error {
-      color: var(--danger);
-    }
-
-    .message.success {
-      color: var(--success);
-    }
-
-    .timer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 22px;
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .timer span {
-      color: var(--muted);
-      font-size: 0.86rem;
-    }
-
-    .timer strong {
-      font-size: 1.3rem;
-      color: var(--success);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .sent-to {
-      overflow-wrap: anywhere;
-      color: var(--text);
-      font-weight: 800;
-    }
-
-    .welcome {
-      flex: 1;
-      display: grid;
-      align-content: center;
-      gap: 22px;
-      text-align: center;
-    }
-
-    .check {
-      width: 86px;
-      height: 86px;
-      display: grid;
-      place-items: center;
-      margin: 0 auto;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(88, 230, 167, 0.18), rgba(33, 183, 255, 0.2));
-      border: 1px solid rgba(88, 230, 167, 0.35);
-      color: var(--success);
-      font-size: 2.5rem;
-    }
-
-    .welcome h2 {
-      margin: 0;
-      font-size: 2.2rem;
-      letter-spacing: 0;
-    }
-
-    .welcome p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-
-    .user-email {
-      color: var(--text);
-      font-weight: 800;
-      overflow-wrap: anywhere;
-    }
-
-    @media (max-width: 430px) {
-      body {
-        padding: 0;
-      }
-
-      .phone {
-        width: 100%;
-        min-height: 100vh;
-        border-radius: 0;
-        border: 0;
-      }
-
-      .app {
-        min-height: 100vh;
-      }
+    .ride-item span { flex:1; }
+    .del-btn { background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px;transition:color 150ms;line-height:1; }
+    .del-btn:hover { color:var(--danger); }
+    .empty-state { font-size:13px;color:var(--muted);text-align:center;padding:20px 0; }
+    @media(max-width:700px) {
+      body { padding:0;align-items:stretch; }
+      .page { grid-template-columns:1fr;border-radius:0;border:none;min-height:100vh;box-shadow:none; }
+      .left { display:none; }
+      .right { padding:40px 24px;justify-content:flex-start;padding-top:56px; }
     }
   </style>
 </head>
 <body>
-  <main class="phone" aria-label="Login MoveGo">
-    <section class="app">
-      <header class="brand">
-        <div class="logo" aria-hidden="true">MG</div>
-        <div>
-          <h1>MoveGo</h1>
-          <p>Seu caminho em poucos toques</p>
-        </div>
-      </header>
-
-      <div class="screen active" id="emailScreen">
-        <div class="hero">
-          <h2>Entre para seguir viagem.</h2>
-          <p>Acesse sua conta com um código seguro enviado por email.</p>
-        </div>
-
-        <div class="route-card" aria-hidden="true">
-          <div class="pin-stack">
-            <span class="pin"></span>
-            <span class="dash"></span>
-            <span class="pin end"></span>
-          </div>
-          <div>
-            <strong>Casa → Centro</strong>
-            <span>Motoristas próximos agora</span>
-          </div>
-          <div class="fare">R$ 18</div>
-        </div>
-
-        <form class="form" id="emailForm">
-          <label for="emailInput">
-            Email
-            <input id="emailInput" type="email" autocomplete="email" placeholder="voce@email.com" required />
-          </label>
-          <button id="sendButton" type="submit">Enviar código</button>
-          <p class="message" id="emailMessage" role="status" aria-live="polite"></p>
-        </form>
+<div class="page">
+  <div class="left">
+    <div class="brand">
+      <div class="logo-box">MG</div>
+      <div><div class="brand-name">MoveGo</div><div class="brand-tag">Seu caminho em poucos toques</div></div>
+    </div>
+    <div class="left-content">
+      <div class="left-title">Chegue onde<br>precisa <span>com segurança.</span></div>
+      <p class="left-desc">Crie sua conta e acesse com email, senha ou Google — rápido, simples e seguro.</p>
+      <div class="route-card">
+        <div class="pins"><div class="pin a"></div><div class="pin-dash"></div><div class="pin b"></div></div>
+        <div class="route-info"><strong>Casa → Centro</strong><span>Motoristas próximos agora</span></div>
+        <div class="fare">R$ 28</div>
       </div>
-
-      <div class="screen" id="otpScreen">
-        <div class="hero">
-          <h2>Confira seu email.</h2>
-          <p>Código enviado para <span class="sent-to" id="sentEmail"></span>.</p>
-        </div>
-
-        <div class="timer">
-          <span>Expira em</span>
-          <strong id="countdown">05:00</strong>
-        </div>
-
-        <form class="form" id="otpForm">
-          <label for="otpInput">
-            Código de 6 dígitos
-            <input
-              class="otp-input"
-              id="otpInput"
-              type="text"
-              inputmode="numeric"
-              autocomplete="one-time-code"
-              maxlength="6"
-              placeholder="000000"
-              required
-            />
-          </label>
-          <button id="loginButton" type="submit">Entrar</button>
-          <button class="secondary" id="resendButton" type="button">Reenviar código</button>
-          <p class="message" id="otpMessage" role="status" aria-live="polite"></p>
-        </form>
+    </div>
+    <div style="font-size:12px;color:var(--muted)">© 2026 MoveGo</div>
+  </div>
+  <div class="right">
+    <div class="screen active" id="loginScreen">
+      <div class="screen-title">Entrar na conta</div>
+      <button class="btn btn-google" id="googleBtn">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+        Continuar com Google
+      </button>
+      <div class="divider">ou</div>
+      <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="voce@email.com" /></div>
+      <div class="field"><label>Senha</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
+      <button class="btn btn-primary" id="loginBtn">Entrar</button>
+      <p class="msg" id="loginMsg"></p>
+      <div class="link-row"><a href="#" id="toForgot">Esqueci minha senha</a></div>
+      <div class="link-row">Não tem conta? <a href="#" id="toRegister">Criar conta</a></div>
+    </div>
+    <div class="screen" id="registerScreen">
+      <div class="screen-title">Criar conta</div>
+      <button class="btn btn-google" id="googleBtnReg">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+        Continuar com Google
+      </button>
+      <div class="divider">ou</div>
+      <div class="field"><label>Email</label><input type="email" id="regEmail" placeholder="voce@email.com" /></div>
+      <div class="field"><label>Senha</label><input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" /></div>
+      <button class="btn btn-primary" id="regBtn">Criar conta</button>
+      <p class="msg" id="regMsg"></p>
+      <div class="link-row">Já tem conta? <a href="#" id="toLogin">Entrar</a></div>
+    </div>
+    <div class="screen" id="forgotScreen">
+      <div class="screen-title">Redefinir senha</div>
+      <p class="screen-desc">Digite seu email e enviaremos um link para redefinir sua senha.</p>
+      <div class="field"><label>Email</label><input type="email" id="forgotEmail" placeholder="voce@email.com" /></div>
+      <button class="btn btn-primary" id="forgotBtn">Enviar link</button>
+      <p class="msg" id="forgotMsg"></p>
+      <div class="link-row"><a href="#" id="backToLogin">← Voltar para login</a></div>
+    </div>
+    <div class="screen" id="dashScreen">
+      <div class="dash-header">
+        <div class="user-info"><strong>Bem-vindo à MoveGo! 👋</strong><span id="userEmail"></span></div>
+        <button class="btn btn-ghost" id="logoutBtn" style="height:40px;padding:0 16px;font-size:13px">Sair</button>
       </div>
-
-      <div class="screen" id="welcomeScreen">
-        <div class="welcome">
-          <div class="check" aria-hidden="true">✓</div>
-          <div>
-            <h2>Bem-vindo!</h2>
-            <p>Você entrou na MoveGo como <span class="user-email" id="welcomeEmail"></span>.</p>
-          </div>
-          <button class="secondary" id="logoutButton" type="button">Sair</button>
-        </div>
+      <div class="crud-title">Suas viagens salvas</div>
+      <div class="add-row">
+        <input type="text" id="rideInput" placeholder="Ex: Casa → Trabalho" />
+        <button class="btn btn-primary" id="addRideBtn">+ Adicionar</button>
       </div>
-    </section>
-  </main>
-
-  <script>
-    const EMAILJS_SERVICE_ID = "service_fge752b";
-    const EMAILJS_TEMPLATE_ID = "template_w5gce6b";
-    const EMAILJS_PUBLIC_KEY = "lxlQKPv4A11ZTqZRI";
-    const OTP_LIFETIME_MS = 5 * 60 * 1000;
-
-    window.onload = function() {
-      emailjs.init("lxlQKPv4A11ZTqZRI");
-    };
-
-    const emailScreen = document.getElementById("emailScreen");
-    const otpScreen = document.getElementById("otpScreen");
-    const welcomeScreen = document.getElementById("welcomeScreen");
-    const emailForm = document.getElementById("emailForm");
-    const otpForm = document.getElementById("otpForm");
-    const emailInput = document.getElementById("emailInput");
-    const otpInput = document.getElementById("otpInput");
-    const sendButton = document.getElementById("sendButton");
-    const loginButton = document.getElementById("loginButton");
-    const resendButton = document.getElementById("resendButton");
-    const logoutButton = document.getElementById("logoutButton");
-    const emailMessage = document.getElementById("emailMessage");
-    const otpMessage = document.getElementById("otpMessage");
-    const sentEmail = document.getElementById("sentEmail");
-    const welcomeEmail = document.getElementById("welcomeEmail");
-    const countdown = document.getElementById("countdown");
-
-    let currentEmail = "";
-    let currentOtp = "";
-    let expiresAt = 0;
-    let timerId = null;
-
-    function showScreen(screen) {
-      [emailScreen, otpScreen, welcomeScreen].forEach((item) => item.classList.remove("active"));
-      screen.classList.add("active");
-    }
-
-    function setMessage(element, text, type = "") {
-      element.textContent = text;
-      element.className = type ? `message ${type}` : "message";
-    }
-
-    function generateOtp() {
-      return String(Math.floor(100000 + Math.random() * 900000));
-    }
-
-    function formatTime(date) {
-      return date.toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    }
-
-    function formatCountdown(milliseconds) {
-      const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
-      const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
-      const seconds = String(totalSeconds % 60).padStart(2, "0");
-      return `${minutes}:${seconds}`;
-    }
-
-    function startCountdown() {
-      clearInterval(timerId);
-
-      function tick() {
-        const remaining = expiresAt - Date.now();
-        countdown.textContent = formatCountdown(remaining);
-
-        if (remaining <= 0) {
-          clearInterval(timerId);
-          currentOtp = "";
-          loginButton.disabled = true;
-          setMessage(otpMessage, "O código expirou. Reenvie para receber um novo.", "error");
-        }
-      }
-
-      tick();
-      timerId = setInterval(tick, 1000);
-    }
-
-    async function sendOtp(email) {
-      if (!window.emailjs) {
-        throw new Error("EmailJS não carregou.");
-      }
-
-      currentEmail = email;
-      currentOtp = generateOtp();
-      expiresAt = Date.now() + OTP_LIFETIME_MS;
-
-      const expiration = new Date(expiresAt);
-
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-        passcode: currentOtp,
-        email: currentEmail,
-        time: formatTime(expiration)
-      });
-    }
-
-    async function handleSendCode(event) {
-      event.preventDefault();
-
-      const email = emailInput.value.trim().toLowerCase();
-      if (!emailInput.checkValidity()) {
-        setMessage(emailMessage, "Digite um email válido para receber o código.", "error");
-        return;
-      }
-
-      sendButton.disabled = true;
-      sendButton.textContent = "Enviando...";
-      setMessage(emailMessage, "");
-
-      try {
-        await sendOtp(email);
-        sentEmail.textContent = currentEmail;
-        otpInput.value = "";
-        loginButton.disabled = false;
-        setMessage(emailMessage, `Código enviado para ${currentEmail}`, "success");
-        setMessage(otpMessage, `Código enviado para ${currentEmail}`, "success");
-        showScreen(otpScreen);
-        startCountdown();
-        otpInput.focus();
-      } catch (error) {
-        console.error("Erro ao enviar OTP:", error);
-        currentOtp = "";
-        setMessage(emailMessage, "Não foi possível enviar o código. Confira o EmailJS e tente novamente.", "error");
-      } finally {
-        sendButton.disabled = false;
-        sendButton.textContent = "Enviar código";
-      }
-    }
-
-    function handleLogin(event) {
-      event.preventDefault();
-
-      const typedCode = otpInput.value.replace(/\D/g, "");
-      otpInput.value = typedCode;
-
-      if (!currentOtp || Date.now() > expiresAt) {
-        currentOtp = "";
-        loginButton.disabled = true;
-        setMessage(otpMessage, "O código expirou. Reenvie para receber um novo.", "error");
-        return;
-      }
-
-      if (typedCode === currentOtp) {
-        clearInterval(timerId);
-        welcomeEmail.textContent = currentEmail;
-        setMessage(otpMessage, "");
-        showScreen(welcomeScreen);
-        return;
-      }
-
-      setMessage(otpMessage, "Código incorreto. Verifique o email e tente novamente.", "error");
-      otpInput.select();
-    }
-
-    async function handleResend() {
-      resendButton.disabled = true;
-      resendButton.textContent = "Reenviando...";
-      setMessage(otpMessage, "");
-
-      try {
-        await sendOtp(currentEmail);
-        otpInput.value = "";
-        loginButton.disabled = false;
-        setMessage(otpMessage, `Código enviado para ${currentEmail}`, "success");
-        startCountdown();
-        otpInput.focus();
-      } catch (error) {
-        console.error("Erro ao reenviar OTP:", error);
-        setMessage(otpMessage, "Não foi possível reenviar o código. Tente novamente.", "error");
-      } finally {
-        resendButton.disabled = false;
-        resendButton.textContent = "Reenviar código";
-      }
-    }
-
-    function resetApp() {
-      clearInterval(timerId);
-      currentEmail = "";
-      currentOtp = "";
-      expiresAt = 0;
-      emailInput.value = "";
-      otpInput.value = "";
-      loginButton.disabled = false;
-      setMessage(emailMessage, "");
-      setMessage(otpMessage, "");
-      showScreen(emailScreen);
-      emailInput.focus();
-    }
-
-    otpInput.addEventListener("input", () => {
-      otpInput.value = otpInput.value.replace(/\D/g, "").slice(0, 6);
-    });
-
-    emailForm.addEventListener("submit", handleSendCode);
-    otpForm.addEventListener("submit", handleLogin);
-    resendButton.addEventListener("click", handleResend);
-    logoutButton.addEventListener("click", resetApp);
-  </script>
+      <p class="msg" id="crudMsg"></p>
+      <div class="rides-list" id="ridesList"><div class="empty-state">Nenhuma viagem salva ainda.</div></div>
+    </div>
+  </div>
+</div>
+<script>
+  const SUPABASE_URL = "https://qtuxvuqzmubzvyqlzymt.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0dXh2dXF6bXVienZ5cWx6eW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNzI5NTMsImV4cCI6MjA5NTk0ODk1M30.Y_b54eIYc1yyLI-Q13frrZOzwyKD1CN6UkL23HjYxJg";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  const allScreens = ["loginScreen","registerScreen","forgotScreen","dashScreen"];
+  function show(id) {
+    allScreens.forEach(s => { $(s).classList.remove("active"); });
+    const t=$(id); t.classList.remove("active"); void t.offsetWidth; t.classList.add("active");
+  }
+  function setMsg(id, text, type="") {
+    const el=$(id); el.textContent=text; el.className="msg"+(type?" "+type:"");
+  }
+  function traduzErro(m) {
+    if(m.includes("Invalid login")) return "Email ou senha incorretos.";
+    if(m.includes("Email not confirmed")) return "Confirme seu email antes de entrar.";
+    if(m.includes("already registered")) return "Este email já está cadastrado.";
+    if(m.includes("Password should")) return "Senha muito curta. Mínimo 6 caracteres.";
+    return m;
+  }
+  async function loginGoogle() {
+    const {error} = await sb.auth.signInWithOAuth({provider:"google", options:{redirectTo: window.location.href}});
+    if(error) setMsg("loginMsg", error.message, "error");
+  }
+  $("googleBtn").addEventListener("click", loginGoogle);
+  $("googleBtnReg").addEventListener("click", loginGoogle);
+  $("loginBtn").addEventListener("click", async () => {
+    const email=$("loginEmail").value.trim(), pass=$("loginPassword").value;
+    if(!email||!pass){ setMsg("loginMsg","Preencha todos os campos.","error"); return; }
+    $("loginBtn").disabled=true; $("loginBtn").textContent="Entrando...";
+    const {error} = await sb.auth.signInWithPassword({email, password:pass});
+    $("loginBtn").disabled=false; $("loginBtn").textContent="Entrar";
+    if(error) setMsg("loginMsg", traduzErro(error.message), "error");
+  });
+  $("regBtn").addEventListener("click", async () => {
+    const email=$("regEmail").value.trim(), pass=$("regPassword").value;
+    if(!email||!pass){ setMsg("regMsg","Preencha todos os campos.","error"); return; }
+    if(pass.length<6){ setMsg("regMsg","Senha precisa ter pelo menos 6 caracteres.","error"); return; }
+    $("regBtn").disabled=true; $("regBtn").textContent="Criando...";
+    const {error} = await sb.auth.signUp({email, password:pass});
+    $("regBtn").disabled=false; $("regBtn").textContent="Criar conta";
+    if(error){ setMsg("regMsg", traduzErro(error.message), "error"); return; }
+    setMsg("regMsg","Conta criada! Verifique seu email para confirmar.","success");
+  });
+  $("forgotBtn").addEventListener("click", async () => {
+    const email=$("forgotEmail").value.trim();
+    if(!email){ setMsg("forgotMsg","Digite seu email.","error"); return; }
+    $("forgotBtn").disabled=true; $("forgotBtn").textContent="Enviando...";
+    const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: window.location.href});
+    $("forgotBtn").disabled=false; $("forgotBtn").textContent="Enviar link";
+    if(error){ setMsg("forgotMsg", traduzErro(error.message), "error"); return; }
+    setMsg("forgotMsg","Link enviado! Verifique seu email.","success");
+  });
+  $("logoutBtn").addEventListener("click", async () => { await sb.auth.signOut(); show("loginScreen"); });
+  $("toRegister").addEventListener("click", e => { e.preventDefault(); show("registerScreen"); });
+  $("toLogin").addEventListener("click", e => { e.preventDefault(); show("loginScreen"); });
+  $("toForgot").addEventListener("click", e => { e.preventDefault(); show("forgotScreen"); });
+  $("backToLogin").addEventListener("click", e => { e.preventDefault(); show("loginScreen"); });
+  async function loadRides(userId) {
+    const {data,error} = await sb.from("rides").select("*").eq("user_id",userId).order("created_at",{ascending:false});
+    if(error){ setMsg("crudMsg","Erro ao carregar viagens.","error"); return; }
+    renderRides(data||[]);
+  }
+  function renderRides(rides) {
+    const list=$("ridesList");
+    if(!rides.length){ list.innerHTML='<div class="empty-state">Nenhuma viagem salva ainda.</div>'; return; }
+    list.innerHTML=rides.map(r=>`<div class="ride-item"><span>${r.destination}</span><button class="del-btn" onclick="deleteRide('${r.id}')">✕</button></div>`).join("");
+  }
+  $("addRideBtn").addEventListener("click", async () => {
+    const dest=$("rideInput").value.trim();
+    if(!dest) return;
+    const {data:{user}} = await sb.auth.getUser();
+    const {error} = await sb.from("rides").insert({destination:dest, user_id:user.id});
+    if(error){ setMsg("crudMsg","Erro ao adicionar.","error"); return; }
+    $("rideInput").value="";
+    await loadRides(user.id);
+  });
+  window.deleteRide = async (id) => {
+    await sb.from("rides").delete().eq("id",id);
+    const {data:{user}} = await sb.auth.getUser();
+    await loadRides(user.id);
+  };
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if(session?.user){ $("userEmail").textContent=session.user.email; show("dashScreen"); await loadRides(session.user.id); }
+  });
+</script>
 </body>
 </html>
