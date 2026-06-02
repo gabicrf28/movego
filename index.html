@@ -119,20 +119,18 @@
     .dash-header { display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--border); }
     .user-info strong { display:block;font-size:15px;font-weight:600; }
     .user-info span { font-size:13px;color:var(--muted); }
-    .crud-title { font-size:15px;font-weight:600; }
-    .add-row { display:flex;gap:10px; }
-    .add-row input { flex:1;height:44px;font-size:14px; }
-    .add-row .btn { height:44px;padding:0 18px;font-size:14px;white-space:nowrap; }
-    .rides-list { display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto; }
-    .ride-item {
-      display:flex;align-items:center;gap:10px;
-      padding:12px 14px; background:var(--surface2);
-      border:1px solid var(--border); border-radius:var(--radius-sm); font-size:14px;
+    .dash-welcome {
+      flex:1;display:flex;align-items:center;justify-content:center;
+      min-height:320px;text-align:center;
     }
-    .ride-item span { flex:1; }
-    .del-btn { background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px;transition:color 150ms;line-height:1; }
-    .del-btn:hover { color:var(--danger); }
-    .empty-state { font-size:13px;color:var(--muted);text-align:center;padding:20px 0; }
+    .dash-welcome h2 {
+      max-width:460px;font-size:clamp(30px,5vw,48px);
+      line-height:1.1;font-weight:700;letter-spacing:-0.5px;
+    }
+    .dash-welcome span {
+      background:linear-gradient(90deg,var(--accent2),var(--accent));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
     @media(max-width:700px) {
       body { padding:0;align-items:stretch; }
       .page { grid-template-columns:1fr;border-radius:0;border:none;min-height:100vh;box-shadow:none; }
@@ -200,13 +198,9 @@
         <div class="user-info"><strong>Bem-vindo à MoveGo! 👋</strong><span id="userEmail"></span></div>
         <button class="btn btn-ghost" id="logoutBtn" style="height:40px;padding:0 16px;font-size:13px">Sair</button>
       </div>
-      <div class="crud-title">Suas viagens salvas</div>
-      <div class="add-row">
-        <input type="text" id="rideInput" placeholder="Ex: Casa → Trabalho" />
-        <button class="btn btn-primary" id="addRideBtn">+ Adicionar</button>
+      <div class="dash-welcome">
+        <h2>Que bom ter você por aqui na <span>MoveGo</span>.</h2>
       </div>
-      <p class="msg" id="crudMsg"></p>
-      <div class="rides-list" id="ridesList"><div class="empty-state">Nenhuma viagem salva ainda.</div></div>
     </div>
   </div>
 </div>
@@ -268,32 +262,8 @@
   $("toLogin").addEventListener("click", e => { e.preventDefault(); show("loginScreen"); });
   $("toForgot").addEventListener("click", e => { e.preventDefault(); show("forgotScreen"); });
   $("backToLogin").addEventListener("click", e => { e.preventDefault(); show("loginScreen"); });
-  async function loadRides(userId) {
-    const {data,error} = await sb.from("rides").select("*").eq("user_id",userId).order("created_at",{ascending:false});
-    if(error){ setMsg("crudMsg","Erro ao carregar viagens.","error"); return; }
-    renderRides(data||[]);
-  }
-  function renderRides(rides) {
-    const list=$("ridesList");
-    if(!rides.length){ list.innerHTML='<div class="empty-state">Nenhuma viagem salva ainda.</div>'; return; }
-    list.innerHTML=rides.map(r=>`<div class="ride-item"><span>${r.destination}</span><button class="del-btn" onclick="deleteRide('${r.id}')">✕</button></div>`).join("");
-  }
-  $("addRideBtn").addEventListener("click", async () => {
-    const dest=$("rideInput").value.trim();
-    if(!dest) return;
-    const {data:{user}} = await sb.auth.getUser();
-    const {error} = await sb.from("rides").insert({destination:dest, user_id:user.id});
-    if(error){ setMsg("crudMsg","Erro ao adicionar.","error"); return; }
-    $("rideInput").value="";
-    await loadRides(user.id);
-  });
-  window.deleteRide = async (id) => {
-    await sb.from("rides").delete().eq("id",id);
-    const {data:{user}} = await sb.auth.getUser();
-    await loadRides(user.id);
-  };
   sb.auth.onAuthStateChange(async (event, session) => {
-    if(session?.user){ $("userEmail").textContent=session.user.email; show("dashScreen"); await loadRides(session.user.id); }
+    if(session?.user){ $("userEmail").textContent=session.user.email; show("dashScreen"); }
   });
 </script>
 </body>
