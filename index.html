@@ -11,11 +11,11 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #0a0000; --surface: #110000; --surface2: #1a0000;
+      --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a;
       --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
-      --text: #f0f1ff; --muted: #7c83a8;
-      --accent: #cc0000; --accent2: #ff3333;
-      --success: #ff4444; --danger: #ff4f6a;
+      --text: #f5f5f5; --muted: #888888;
+      --accent: #ffffff; --accent2: #cccccc;
+      --success: #22d48a; --danger: #ff4f6a;
       --radius: 16px; --radius-sm: 10px;
     }
     body {
@@ -28,8 +28,8 @@
       content: ''; position: fixed; border-radius: 50%;
       filter: blur(120px); pointer-events: none; z-index: 0;
     }
-    body::before { width:600px;height:600px;background:rgba(180,0,0,0.18);top:-200px;left:-100px; }
-    body::after  { width:500px;height:500px;background:rgba(255,50,50,0.1);bottom:-150px;right:-100px; }
+    body::before { width:600px;height:600px;background:rgba(255,255,255,0.04);top:-200px;left:-100px; }
+    body::after  { width:500px;height:500px;background:rgba(255,255,255,0.02);bottom:-150px;right:-100px; }
     .page {
       position:relative; z-index:1; width:100%; max-width:1100px;
       display:grid; grid-template-columns:1fr 1fr; min-height:600px;
@@ -37,19 +37,19 @@
       border:1px solid var(--border); box-shadow:0 40px 120px rgba(0,0,0,0.6);
     }
     .left {
-      background:linear-gradient(145deg,#160000,#2a0000);
+      background:#0f0f0f;
       padding:52px 48px; display:flex; flex-direction:column;
       justify-content:space-between; border-right:1px solid var(--border);
       position:relative; overflow:hidden;
     }
     .left::before {
       content:''; position:absolute; width:300px;height:300px; border-radius:50%;
-      background:rgba(180,0,0,0.16); filter:blur(80px); bottom:-80px;left:-80px;
+      background:rgba(255,255,255,0.04); filter:blur(80px); bottom:-80px;left:-80px;
     }
     .brand { display:flex; align-items:center; gap:14px; }
     .logo-box {
       width:48px;height:48px; border-radius:14px;
-      background:linear-gradient(135deg, #cc0000, #ff5555);
+      background:#1f1f1f;
       display:flex;align-items:center;justify-content:center;
       flex-shrink:0; overflow:hidden;
       border:1px solid var(--border2);
@@ -62,8 +62,7 @@
     .left-content { flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;padding:40px 0; }
     .left-title { font-weight:700;font-size:clamp(26px,3vw,36px);line-height:1.15;letter-spacing:-0.5px; }
     .left-title span {
-      background:linear-gradient(90deg, #ff3333, #cc0000);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      -webkit-text-fill-color:#ffffff;color:#ffffff;
     }
     .left-desc { font-size:15px;color:var(--muted);line-height:1.65;max-width:340px; }
     .route-card {
@@ -73,9 +72,9 @@
     }
     .pins { display:flex;flex-direction:column;align-items:center;gap:4px; }
     .pin { width:10px;height:10px;border-radius:50%; }
-    .pin.a { background:var(--accent2);box-shadow:0 0 0 3px rgba(255,51,51,0.15); }
-    .pin.b { background:var(--accent);box-shadow:0 0 0 3px rgba(204,0,0,0.15); }
-    .pin-dash { width:1.5px;height:16px;background:linear-gradient(#ff3333,#cc0000);opacity:0.5; }
+    .pin.a { background:var(--accent2);box-shadow:0 0 0 3px rgba(255,255,255,0.12); }
+    .pin.b { background:var(--accent);box-shadow:0 0 0 3px rgba(255,255,255,0.16); }
+    .pin-dash { width:1.5px;height:16px;background:#666666;opacity:0.5; }
     .route-info strong { display:block;font-size:14px;font-weight:600; }
     .route-info span { font-size:12px;color:var(--muted); }
     .fare { margin-left:auto;font-size:16px;font-weight:600;color:var(--success); }
@@ -94,7 +93,7 @@
       font-size:15px; padding:0 16px; outline:none;
       transition:border-color 180ms,box-shadow 180ms;
     }
-    input:focus { border-color:var(--accent);box-shadow:0 0 0 3px rgba(204,0,0,0.18); }
+    input:focus { border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,255,255,0.12); }
     .btn {
       height:52px;border:none;border-radius:var(--radius-sm);
       font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:600;
@@ -104,7 +103,7 @@
     .btn:hover { filter:brightness(1.1);transform:translateY(-1px); }
     .btn:active { transform:translateY(0); }
     .btn:disabled { opacity:0.5;cursor:not-allowed;transform:none; }
-    .btn-primary { background:linear-gradient(135deg, #cc0000, #ff3333);color:white;box-shadow:0 8px 24px rgba(180,0,0,0.34); }
+    .btn-primary { background:#ffffff;color:#000000;box-shadow:0 8px 24px rgba(255,255,255,0.12); }
     .btn-google { background:var(--surface2);border:1px solid var(--border2);color:var(--text); }
     .btn-ghost { background:transparent;border:1px solid var(--border2);color:var(--muted); }
     .btn-ghost:hover { color:var(--text);background:var(--surface2);filter:none; }
@@ -160,15 +159,6 @@
       <button class="btn btn-primary" id="loginBtn">Entrar</button>
       <p class="msg" id="loginMsg"></p>
       <div class="link-row"><a href="#" id="toForgot">Esqueci minha senha</a></div>
-      <div class="link-row">Não tem conta? <a href="#" id="toRegister">Criar conta</a></div>
-    </div>
-    <div class="screen" id="registerScreen">
-      <div class="screen-title">Criar conta</div>
-      <div class="field"><label>Email</label><input type="email" id="regEmail" placeholder="voce@email.com" /></div>
-      <div class="field"><label>Senha</label><input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" /></div>
-      <button class="btn btn-primary" id="regBtn">Criar conta</button>
-      <p class="msg" id="regMsg"></p>
-      <div class="link-row">Já tem conta? <a href="#" id="toLogin">Entrar</a></div>
     </div>
     <div class="screen" id="forgotScreen">
       <div class="screen-title">Redefinir senha</div>
@@ -191,7 +181,7 @@
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0dXh2dXF6bXVienZ5cWx6eW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNzI5NTMsImV4cCI6MjA5NTk0ODk1M30.Y_b54eIYc1yyLI-Q13frrZOzwyKD1CN6UkL23HjYxJg";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = id => document.getElementById(id);
-  const allScreens = ["loginScreen","registerScreen","forgotScreen","dashScreen"];
+  const allScreens = ["loginScreen","forgotScreen","dashScreen"];
   function show(id) {
     allScreens.forEach(s => { $(s).classList.remove("active"); });
     const t=$(id); t.classList.remove("active"); void t.offsetWidth; t.classList.add("active");
@@ -227,16 +217,6 @@
     $("loginBtn").disabled=false; $("loginBtn").textContent="Entrar";
     if(error) setMsg("loginMsg", traduzErro(error.message), "error");
   });
-  $("regBtn").addEventListener("click", async () => {
-    const email=$("regEmail").value.trim(), pass=$("regPassword").value;
-    if(!email||!pass){ setMsg("regMsg","Preencha todos os campos.","error"); return; }
-    if(pass.length<6){ setMsg("regMsg","Senha precisa ter pelo menos 6 caracteres.","error"); return; }
-    $("regBtn").disabled=true; $("regBtn").textContent="Criando...";
-    const {error} = await sb.auth.signUp({email, password:pass});
-    $("regBtn").disabled=false; $("regBtn").textContent="Criar conta";
-    if(error){ setMsg("regMsg", traduzErro(error.message), "error"); return; }
-    setMsg("regMsg","Conta criada! Verifique seu email para confirmar.","success");
-  });
   $("forgotBtn").addEventListener("click", async () => {
     const email=$("forgotEmail").value.trim();
     if(!email){ setMsg("forgotMsg","Digite seu email.","error"); return; }
@@ -247,8 +227,6 @@
     setMsg("forgotMsg","Link enviado! Verifique seu email.","success");
   });
   $("logoutBtn").addEventListener("click", async () => { await sb.auth.signOut(); show("loginScreen"); });
-  $("toRegister").addEventListener("click", e => { e.preventDefault(); show("registerScreen"); });
-  $("toLogin").addEventListener("click", e => { e.preventDefault(); show("loginScreen"); });
   $("toForgot").addEventListener("click", e => { e.preventDefault(); show("forgotScreen"); });
   $("backToLogin").addEventListener("click", e => { e.preventDefault(); show("loginScreen"); });
   sb.auth.onAuthStateChange(async (event, session) => {
@@ -256,8 +234,8 @@
       const isNewUser = session.user.created_at === session.user.last_sign_in_at;
       if (isNewUser) {
         await sb.auth.signOut();
-        setMsg("loginMsg", "Conta não encontrada. Crie uma conta primeiro.", "error");
-        show("registerScreen");
+        setMsg("loginMsg", "Conta não encontrada.", "error");
+        show("loginScreen");
         return;
       }
       $("userEmail").textContent = session.user.email;
