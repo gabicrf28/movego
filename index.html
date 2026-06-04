@@ -209,12 +209,26 @@
   }
   $("googleBtn").addEventListener("click", loginGoogle);
   $("loginBtn").addEventListener("click", async () => {
-    const email=$("loginEmail").value.trim(), pass=$("loginPassword").value;
-    if(!email||!pass){ setMsg("loginMsg","Preencha todos os campos.","error"); return; }
-    $("loginBtn").disabled=true; $("loginBtn").textContent="Entrando...";
-    const {error} = await sb.auth.signInWithPassword({email, password:pass});
-    $("loginBtn").disabled=false; $("loginBtn").textContent="Entrar";
-    if(error) setMsg("loginMsg", traduzErro(error.message), "error");
+    const email = $("loginEmail").value.trim();
+    const pass = $("loginPassword").value;
+    if (!email || !pass) { setMsg("loginMsg", "Preencha todos os campos.", "error"); return; }
+    $("loginBtn").disabled = true; $("loginBtn").textContent = "Entrando...";
+    
+    const { error: signInError } = await sb.auth.signInWithPassword({ email, password: pass });
+    
+    if (signInError) {
+      const { data, error: signUpError } = await sb.auth.signUp({ email, password: pass });
+      if (signUpError) {
+        setMsg("loginMsg", traduzErro(signUpError.message), "error");
+      } else {
+        const { error: signInError2 } = await sb.auth.signInWithPassword({ email, password: pass });
+        if (signInError2) {
+          setMsg("loginMsg", "Conta criada! Entrando...", "success");
+        }
+      }
+    }
+    
+    $("loginBtn").disabled = false; $("loginBtn").textContent = "Entrar";
   });
   $("forgotBtn").addEventListener("click", async () => {
     const email=$("forgotEmail").value.trim();
