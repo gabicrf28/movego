@@ -173,6 +173,13 @@
         <button class="btn btn-ghost" id="logoutBtn" style="height:40px;padding:0 16px;font-size:13px">Sair</button>
       </div>
     </div>
+    <div class="screen" id="resetScreen">
+      <div class="screen-title">Nova senha</div>
+      <p class="screen-desc">Digite sua nova senha abaixo.</p>
+      <div class="field"><label>Nova senha</label><input type="password" id="newPassword" placeholder="Mínimo 6 caracteres" /></div>
+      <button class="btn btn-primary" id="resetBtn">Salvar nova senha</button>
+      <p class="msg" id="resetMsg"></p>
+    </div>
   </div>
 </div>
 <script>
@@ -180,7 +187,7 @@
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0dXh2dXF6bXVienZ5cWx6eW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNzI5NTMsImV4cCI6MjA5NTk0ODk1M30.Y_b54eIYc1yyLI-Q13frrZOzwyKD1CN6UkL23HjYxJg";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = id => document.getElementById(id);
-  const allScreens = ["loginScreen","forgotScreen","dashScreen"];
+  const allScreens = ["loginScreen","forgotScreen","dashScreen","resetScreen"];
   function show(id) {
     allScreens.forEach(s => { $(s).classList.remove("active"); });
     const t=$(id); t.classList.remove("active"); void t.offsetWidth; t.classList.add("active");
@@ -224,7 +231,7 @@
         } else {
           const { error: signInError2 } = await sb.auth.signInWithPassword({ email, password: pass });
           if (signInError2) {
-            setMsg("loginMsg", "Erro ao entrar. Tente novamente.", "error");
+            setMsg("loginMsg", "Senha incorreta. Tente novamente.", "error");
           }
         }
       } else if (signInError.message.includes("Email not confirmed")) {
@@ -248,17 +255,25 @@
   $("logoutBtn").addEventListener("click", async () => { await sb.auth.signOut(); show("loginScreen"); });
   $("toForgot").addEventListener("click", e => { e.preventDefault(); show("forgotScreen"); });
   $("backToLogin").addEventListener("click", e => { e.preventDefault(); show("loginScreen"); });
+  $("resetBtn").addEventListener("click", async () => {
+    const pass = $("newPassword").value;
+    if(!pass || pass.length < 6){ setMsg("resetMsg","Senha precisa ter pelo menos 6 caracteres.","error"); return; }
+    $("resetBtn").disabled = true; $("resetBtn").textContent = "Salvando...";
+    const { error } = await sb.auth.updateUser({ password: pass });
+    $("resetBtn").disabled = false; $("resetBtn").textContent = "Salvar nova senha";
+    if(error){ setMsg("resetMsg", error.message, "error"); return; }
+    setMsg("resetMsg","Senha alterada com sucesso!","success");
+    setTimeout(() => show("loginScreen"), 2000);
+  });
+
   sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === "SIGNED_IN" && session?.user) {
-      const isNewUser = session.user.created_at === session.user.last_sign_in_at;
-      if (isNewUser) {
-        await sb.auth.signOut();
-        setMsg("loginMsg", "Conta não encontrada.", "error");
-        show("loginScreen");
-        return;
-      }
+    if(event === "PASSWORD_RECOVERY"){
+      show("resetScreen");
+    }
+    if(event === "SIGNED_IN" && session?.user){
       $("userEmail").textContent = session.user.email;
       show("dashScreen");
+      if (typeof loadRides === "function") await loadRides(session.user.id);
     }
   });
 </script>
