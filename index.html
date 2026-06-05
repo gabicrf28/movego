@@ -214,18 +214,23 @@
     if (!email || !pass) { setMsg("loginMsg", "Preencha todos os campos.", "error"); return; }
     $("loginBtn").disabled = true; $("loginBtn").textContent = "Entrando...";
     
-    const { error: signInError } = await sb.auth.signInWithPassword({ email, password: pass });
+    const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({ email, password: pass });
     
     if (signInError) {
-      if (signInError.message.includes("Invalid login")) {
+      if (signInError.message.includes("Invalid login credentials")) {
         const { error: signUpError } = await sb.auth.signUp({ email, password: pass });
         if (signUpError) {
           setMsg("loginMsg", traduzErro(signUpError.message), "error");
         } else {
-          await sb.auth.signInWithPassword({ email, password: pass });
+          const { error: signInError2 } = await sb.auth.signInWithPassword({ email, password: pass });
+          if (signInError2) {
+            setMsg("loginMsg", "Erro ao entrar. Tente novamente.", "error");
+          }
         }
+      } else if (signInError.message.includes("Email not confirmed")) {
+        setMsg("loginMsg", "Email não confirmado. Verifique sua caixa de entrada.", "error");
       } else {
-        setMsg("loginMsg", traduzErro(signInError.message), "error");
+        setMsg("loginMsg", "Senha incorreta. Tente novamente.", "error");
       }
     }
     
