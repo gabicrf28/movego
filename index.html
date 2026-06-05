@@ -217,14 +217,15 @@
     const { error: signInError } = await sb.auth.signInWithPassword({ email, password: pass });
     
     if (signInError) {
-      const { data, error: signUpError } = await sb.auth.signUp({ email, password: pass });
-      if (signUpError) {
-        setMsg("loginMsg", traduzErro(signUpError.message), "error");
-      } else {
-        const { error: signInError2 } = await sb.auth.signInWithPassword({ email, password: pass });
-        if (signInError2) {
-          setMsg("loginMsg", "Conta criada! Entrando...", "success");
+      if (signInError.message.includes("Invalid login")) {
+        const { error: signUpError } = await sb.auth.signUp({ email, password: pass });
+        if (signUpError) {
+          setMsg("loginMsg", traduzErro(signUpError.message), "error");
+        } else {
+          await sb.auth.signInWithPassword({ email, password: pass });
         }
+      } else {
+        setMsg("loginMsg", traduzErro(signInError.message), "error");
       }
     }
     
