@@ -267,13 +267,26 @@
   });
 
   sb.auth.onAuthStateChange(async (event, session) => {
-    if(event === "PASSWORD_RECOVERY"){
+    if (event === "PASSWORD_RECOVERY") {
       show("resetScreen");
+      return;
     }
-    if(event === "SIGNED_IN" && session?.user){
+    if (event === "SIGNED_IN" && session?.user) {
+      const isReset = window.location.hash.includes("type=recovery");
+      if (isReset) {
+        show("resetScreen");
+        return;
+      }
       $("userEmail").textContent = session.user.email;
       show("dashScreen");
-      if (typeof loadRides === "function") await loadRides(session.user.id);
+      await loadRides(session.user.id);
+    }
+  });
+
+  window.addEventListener("load", () => {
+    const hash = window.location.hash;
+    if (hash.includes("type=recovery")) {
+      show("resetScreen");
     }
   });
 </script>
