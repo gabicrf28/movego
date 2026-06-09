@@ -263,19 +263,43 @@
     $("resetBtn").disabled = false; $("resetBtn").textContent = "Salvar nova senha";
     if(error){ setMsg("resetMsg", error.message, "error"); return; }
     setMsg("resetMsg","Senha alterada com sucesso!","success");
-    setTimeout(() => show("loginScreen"), 2000);
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    setTimeout(async () => {
+      await sb.auth.signOut();
+      $("newPassword").value = "";
+      setMsg("resetMsg", "");
+      show("loginScreen");
+    }, 2000);
   });
+
+  function isRecoveryHash() {
+    return window.location.hash.includes("type=recovery");
+  }
 
   window.addEventListener("load", async () => {
     const hash = window.location.hash;
-    if (hash.includes("access_token") && hash.includes("type=recovery")) {
-      const params = new URLSearchParams(hash.substring(1));
-      const accessToken = params.get("access_token");
-      const refreshToken = params.get("refresh_token");
-      if (accessToken) {
-        await sb.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-        show("resetScreen");
+    if (!hash.includes("type=recovery")) {
+      return;
+    }
+
+    show("resetScreen");
+
+    const params = new URLSearchParams(hash.substring(1));
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
+
+    if (accessToken && refreshToken) {
+      const { error } = await sb.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+
+      if (error) {
+        setMsg("resetMsg", error.message, "error");
+        return;
       }
+
+      show("resetScreen");
     }
   });
 
@@ -285,14 +309,15 @@
       return;
     }
     if (event === "SIGNED_IN" && session?.user) {
-      const hash = window.location.hash;
-      if (hash.includes("type=recovery")) {
+      if (isRecoveryHash()) {
         show("resetScreen");
         return;
       }
       $("userEmail").textContent = session.user.email;
       show("dashScreen");
-      await loadRides(session.user.id);
+      if (typeof loadRides === "function") {
+        await loadRides(session.user.id);
+      }
     }
   });
 </script>
