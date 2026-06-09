@@ -47,16 +47,6 @@
       background:rgba(255,255,255,0.04); filter:blur(80px); bottom:-80px;left:-80px;
     }
     .brand { display:flex; align-items:center; gap:14px; }
-    .logo-box {
-      width:48px;height:48px; border-radius:14px;
-      background:#1f1f1f;
-      display:flex;align-items:center;justify-content:center;
-      flex-shrink:0; overflow:hidden;
-      border:1px solid var(--border2);
-    }
-    .logo-box img {
-      width:100%;height:100%;object-fit:cover;display:block;
-    }
     .brand-name { font-weight:700;font-size:22px; }
     .brand-tag { font-size:13px;color:var(--muted);margin-top:2px; }
     .left-content { flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;padding:40px 0; }
@@ -64,7 +54,6 @@
     .left-title span {
       -webkit-text-fill-color:#ffffff;color:#ffffff;
     }
-    .left-desc { font-size:15px;color:var(--muted);line-height:1.65;max-width:340px; }
     .route-card {
       background:var(--surface2); border:1px solid var(--border2);
       border-radius:var(--radius); padding:16px 20px;
@@ -153,8 +142,8 @@
         Continuar com Google
       </button>
       <div class="divider">ou</div>
-      <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="voce@email.com" /></div>
-      <div class="field"><label>Senha</label><input type="password" id="loginPassword" placeholder="••••••••" /></div>
+      <div class="field"><label for="loginEmail">Email</label><input type="email" id="loginEmail" placeholder="voce@email.com" autocomplete="email" /></div>
+      <div class="field"><label for="loginPassword">Senha</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" /></div>
       <button class="btn btn-primary" id="loginBtn">Entrar</button>
       <p class="msg" id="loginMsg"></p>
       <div class="link-row"><a href="#" id="toForgot">Esqueci minha senha</a></div>
@@ -162,7 +151,7 @@
     <div class="screen" id="forgotScreen">
       <div class="screen-title">Redefinir senha</div>
       <p class="screen-desc">Digite seu email e enviaremos um link para redefinir sua senha.</p>
-      <div class="field"><label>Email</label><input type="email" id="forgotEmail" placeholder="voce@email.com" /></div>
+      <div class="field"><label for="forgotEmail">Email</label><input type="email" id="forgotEmail" placeholder="voce@email.com" autocomplete="email" /></div>
       <button class="btn btn-primary" id="forgotBtn">Enviar link</button>
       <p class="msg" id="forgotMsg"></p>
       <div class="link-row"><a href="#" id="backToLogin">← Voltar para login</a></div>
@@ -176,7 +165,7 @@
     <div class="screen" id="resetScreen">
       <div class="screen-title">Nova senha</div>
       <p class="screen-desc">Digite sua nova senha abaixo.</p>
-      <div class="field"><label>Nova senha</label><input type="password" id="newPassword" placeholder="Mínimo 6 caracteres" /></div>
+      <div class="field"><label for="newPassword">Nova senha</label><input type="password" id="newPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password" /></div>
       <button class="btn btn-primary" id="resetBtn">Salvar nova senha</button>
       <p class="msg" id="resetMsg"></p>
     </div>
@@ -188,6 +177,11 @@
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = id => document.getElementById(id);
   const allScreens = ["loginScreen","forgotScreen","dashScreen","resetScreen"];
+
+  let inRecoveryFlow = false;
+  let recoveryAccessToken = null;
+  let recoveryRefreshToken = null;
+
   function show(id) {
     allScreens.forEach(s => { $(s).classList.remove("active"); });
     const t=$(id); t.classList.remove("active"); void t.offsetWidth; t.classList.add("active");
@@ -200,13 +194,16 @@
     if(m.includes("Email not confirmed")) return "Confirme seu email antes de entrar.";
     if(m.includes("already registered")) return "Este email já está cadastrado.";
     if(m.includes("Password should")) return "Senha muito curta. Mínimo 6 caracteres.";
+    if(m.includes("Auth session missing")) return "Sessão expirada. Solicite um novo link de redefinição.";
     return m;
   }
+  const BASE_URL = window.location.origin + window.location.pathname;
+
   async function loginGoogle() {
     const { data, error } = await sb.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.href,
+        redirectTo: BASE_URL,
         queryParams: {
           prompt: "select_account"
         }
@@ -220,9 +217,9 @@
     const pass = $("loginPassword").value;
     if (!email || !pass) { setMsg("loginMsg", "Preencha todos os campos.", "error"); return; }
     $("loginBtn").disabled = true; $("loginBtn").textContent = "Entrando...";
-    
+
     const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({ email, password: pass });
-    
+
     if (signInError) {
       if (signInError.message.includes("Invalid login credentials")) {
         const { error: signUpError } = await sb.auth.signUp({ email, password: pass });
@@ -240,14 +237,14 @@
         setMsg("loginMsg", "Senha incorreta. Tente novamente.", "error");
       }
     }
-    
+
     $("loginBtn").disabled = false; $("loginBtn").textContent = "Entrar";
   });
   $("forgotBtn").addEventListener("click", async () => {
     const email=$("forgotEmail").value.trim();
     if(!email){ setMsg("forgotMsg","Digite seu email.","error"); return; }
     $("forgotBtn").disabled=true; $("forgotBtn").textContent="Enviando...";
-    const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: window.location.href});
+    const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: BASE_URL});
     $("forgotBtn").disabled=false; $("forgotBtn").textContent="Enviar link";
     if(error){ setMsg("forgotMsg", traduzErro(error.message), "error"); return; }
     setMsg("forgotMsg","Link enviado! Verifique seu email.","success");
@@ -255,14 +252,29 @@
   $("logoutBtn").addEventListener("click", async () => { await sb.auth.signOut(); show("loginScreen"); });
   $("toForgot").addEventListener("click", e => { e.preventDefault(); show("forgotScreen"); });
   $("backToLogin").addEventListener("click", e => { e.preventDefault(); show("loginScreen"); });
+  $("loginEmail").addEventListener("keydown", e => { if(e.key === "Enter") $("loginPassword").focus(); });
+  $("loginPassword").addEventListener("keydown", e => { if(e.key === "Enter") $("loginBtn").click(); });
+  $("forgotEmail").addEventListener("keydown", e => { if(e.key === "Enter") $("forgotBtn").click(); });
+  $("newPassword").addEventListener("keydown", e => { if(e.key === "Enter") $("resetBtn").click(); });
   $("resetBtn").addEventListener("click", async () => {
     const pass = $("newPassword").value;
     if(!pass || pass.length < 6){ setMsg("resetMsg","Senha precisa ter pelo menos 6 caracteres.","error"); return; }
     $("resetBtn").disabled = true; $("resetBtn").textContent = "Salvando...";
+
+    const { data: sessionData } = await sb.auth.getSession();
+    if (!sessionData.session) {
+      $("resetBtn").disabled = false; $("resetBtn").textContent = "Salvar nova senha";
+      setMsg("resetMsg", "Sessão expirada. Solicite um novo link de redefinição.", "error");
+      return;
+    }
+
     const { error } = await sb.auth.updateUser({ password: pass });
     $("resetBtn").disabled = false; $("resetBtn").textContent = "Salvar nova senha";
-    if(error){ setMsg("resetMsg", error.message, "error"); return; }
+    if(error){ setMsg("resetMsg", traduzErro(error.message), "error"); return; }
     setMsg("resetMsg","Senha alterada com sucesso!","success");
+    inRecoveryFlow = false;
+    recoveryAccessToken = null;
+    recoveryRefreshToken = null;
     window.history.replaceState(null, "", window.location.pathname + window.location.search);
     setTimeout(async () => {
       await sb.auth.signOut();
@@ -272,44 +284,44 @@
     }, 2000);
   });
 
-  function isRecoveryHash() {
-    return window.location.hash.includes("type=recovery");
-  }
-
   window.addEventListener("load", async () => {
     const hash = window.location.hash;
-    if (!hash.includes("type=recovery")) {
-      return;
-    }
-
-    show("resetScreen");
+    if (!hash.includes("type=recovery")) return;
 
     const params = new URLSearchParams(hash.substring(1));
     const accessToken = params.get("access_token");
     const refreshToken = params.get("refresh_token");
 
-    if (accessToken && refreshToken) {
+    if (accessToken) recoveryAccessToken = accessToken;
+    if (refreshToken) recoveryRefreshToken = refreshToken;
+    inRecoveryFlow = true;
+    show("resetScreen");
+
+    // Aguarda o Supabase processar o hash automaticamente (detectSessionInUrl)
+    // antes de tentar chamar setSession manualmente, evitando uso duplo do refresh token
+    await new Promise(r => setTimeout(r, 400));
+
+    const { data: sessionData } = await sb.auth.getSession();
+    if (!sessionData.session && accessToken && refreshToken) {
+      // O Supabase não estabeleceu a sessão automaticamente, tentamos manualmente
       const { error } = await sb.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
       });
-
       if (error) {
-        setMsg("resetMsg", error.message, "error");
-        return;
+        setMsg("resetMsg", "Link de redefinição expirado. Solicite um novo.", "error");
       }
-
-      show("resetScreen");
     }
   });
 
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === "PASSWORD_RECOVERY") {
+      inRecoveryFlow = true;
       show("resetScreen");
       return;
     }
-    if (event === "SIGNED_IN" && session?.user) {
-      if (isRecoveryHash()) {
+    if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
+      if (inRecoveryFlow) {
         show("resetScreen");
         return;
       }
@@ -318,6 +330,11 @@
       if (typeof loadRides === "function") {
         await loadRides(session.user.id);
       }
+      return;
+    }
+    if (event === "SIGNED_OUT") {
+      inRecoveryFlow = false;
+      show("loginScreen");
     }
   });
 </script>
