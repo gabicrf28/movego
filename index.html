@@ -374,7 +374,12 @@
     document.getElementById("regBtn").disabled = false;
     document.getElementById("regBtn").textContent = "Criar conta";
     if(error){ setMsg("regMsg", traduzErro(error.message), "error"); return; }
-    setMsg("regMsg","Conta criada com sucesso!","success");
+    const { error: signInAfterReg } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (!signInAfterReg) {
+      setMsg("regMsg", "Conta criada! Entrando...", "success");
+      return;
+    }
+    setMsg("regMsg", "Conta criada! Faça login para entrar.", "success");
     setTimeout(() => switchTab("entrar"), 1500);
   });
   $("forgotBtn").addEventListener("click", async () => {
